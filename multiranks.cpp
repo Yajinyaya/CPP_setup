@@ -19,6 +19,7 @@ using namespace std;
 #include <vector>
 #include <string>
 #include <math.h>
+#include <time.h>
 /**
  * @brief after partition, the new index for the value originally at index
  * 
