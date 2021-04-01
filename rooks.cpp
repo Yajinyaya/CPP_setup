@@ -42,8 +42,7 @@ Vertice::Vertice(int i_val, int i_row_low, int i_row_high, int i_col_low, int i_
 }
 
 
-void Vertice::add_edge(Vertice *v, Vertice *w){
-  Edge e(v, w);
+void Vertice::add_edge(Edge *e){
   edges.push_back(e);
 }
 

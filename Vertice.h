@@ -6,7 +6,7 @@ using namespace std;
 class Edge;
 class Vertice{
   public:
-    vector<Edge> edges;
+    vector<Edge*> edges;
     int is_rec;
     int row_low;
     int row_high;
@@ -17,7 +17,7 @@ class Vertice{
     Vertice(){
       
     }
-    void add_edge(Vertice *v, Vertice *w);
+    void add_edge(Edge *e);
 };
 
 #endif
