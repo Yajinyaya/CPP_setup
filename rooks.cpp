@@ -81,7 +81,31 @@ public:
   vector<Vertice> row_vertices;
   vector<Vertice> rec_vertices;
   vector<Vertice> col_vertices;
-  Graph(int n, int k, vector<int> rec_row_low,vector<int> rec_row_high, vector<int> rec_col_low, vector<int> rec_col_high){
+  Vertice s;
+  Vertice t;
+   has_pos_edge(Vertice v){
+    
+  }
+  int get_aug_path(Vertice cur, vector<edge> &path){
+    for (Edge e:cur.edges){
+      if (e.parent == cur && e.capacity > 0){
+        e.capacity = 0;
+        e.reverse_capacity = 1;
+        path.push_back(e);
+        if (get_aug_path(e.child, path) < 0){
+          path.
+        }
+      } || e.child == cur &&  e.reverse_capacity  > 0)
+      {
+        int temp = e.capacity;
+        e.capacity = e.reverse_capacity;
+        e.reverse_capacity = temp;
+        path.push_back(e);
+      }
+    }
+  }
+  Graph(int n, int k, vector<int> rec_row_low, vector<int> rec_row_high, vector<int> rec_col_low, vector<int> rec_col_high)
+  {
     for (int i = 0; i < n; i ++){
       Vertice new_row_v(i, 0, -1, -1, -1, -1);
       row_vertices.push_back(new_row_v);
@@ -95,15 +119,35 @@ public:
       rec_vertices.push_back(new_rec_v);
       all_vertices.push_back(new_rec_v);
     }
-    for (auto v: rec_vertices){
-  
+    Vertice s(0, 0, 0, 0, 0, 0);
+    Vertice t(0, 0, 0, 0, 0, 0);
+    all_vertices.push_back(s);
+    all_vertices.push_back(t);
+    for (auto v:row_vertices){
+      Edge row_edge(s, v);
+      s.add_edge(row_edge);
+      v.add_edge(row_edge);
+    }
+    for(auto v:col_vertices){
+      Edge col_edge(v, t);
+      v.add_edge(col_edge);
+      t.add_edge(col_edge);
+    }
+    for (auto v : rec_vertices)
+    {
+
       for (int i = v.row_low; i <= v.row_high; i++){
-        row_vertices[i].add_edge();
-        rec_vertices[
+        Edge row_edge(row_vertices[i], v);
+        row_vertices[i].add_edge(row_edge);
+        v.add_edge(row_edge);
+      }
+      for (int i = v.col_low; i <= v.col_high; i++){
+        Edge col_edge(v,col_vertices[i]);
+        col_vertices[i].add_edge(col_edge);
+        v.add_edge(col_edge);
       }
     }
-   }
-   
+  }
 };
 
 
