@@ -11,9 +11,7 @@ class Edge{
     long long int reverse_capacity;
 
     Edge (Vertice *i_parent, Vertice *i_child);
-    Edge(){
-
-    }
+    
 };
 #include "Vertice.h"
 

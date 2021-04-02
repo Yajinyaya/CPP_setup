@@ -56,98 +56,105 @@ Edge::Edge(Vertice *i_parent, Vertice *i_child){
 
 class Graph{
 public:
-  vector<Vertice> all_vertices;
-  vector<Vertice> row_vertices;
-  vector<Vertice> rec_vertices;
-  vector<Vertice> col_vertices;
+  vector<Vertice*> row_vertices;
+  vector<Vertice*> rec_vertices;
+  vector<Vertice*> col_vertices;
   Vertice *s;
   Vertice *t;
-  vector<int> result_row;
-  vector<int> result_col;
   int result = 0;
-  int get_aug_path(Vertice *cur, vector<Edge> &path){
+  // void print_graph(){
+  //   cout << "s: " << s << endl;
+  //   for (int i = 0; i < (*s).edges.size(); i++){
+  //     if ((*(*s).edges[i]).parent == s){
+  //       cout << " child of val " << (*(*(*s).edges[i]).child).val << endl;
+  //     }
+      
+  //   }
+  // }
+  int get_aug_path(Vertice *cur, vector<Edge*> &path){
     if (cur == t){
       return 1;
     }
-    for (Edge e:(*cur).edges){
-      if (&e.parent == &cur && e.capacity > 0){
-        e.capacity = 0;
-        e.reverse_capacity = 1;
+    for (Edge *e:cur->edges){
+      if (e->parent == cur && e->capacity > 0){
+        e->capacity = 0;
+        e->reverse_capacity = 0;
         path.push_back(e);
-        if (get_aug_path(e.child, path) < 0){
+        if (get_aug_path(e->child, path) < 0){
           path.pop_back();
-          e.capacity = 1;
-          e.reverse_capacity = 0;
+          e->capacity = 1;
+          e->reverse_capacity = 0;
           continue;
         } else {
+          e->capacity = 0;
+          e->reverse_capacity = 1;
           return 1;
         }
-      }else if (&e.child == &cur &&  e.reverse_capacity  > 0){
-        e.capacity = 1;
-        e.reverse_capacity = 0;
+      }else if (e->child == cur &&  e->reverse_capacity  > 0){
+        e->capacity = 0;
+        e->reverse_capacity = 0;
         path.push_back(e);
-        if (get_aug_path(e.parent, path) < 0){
+        if (get_aug_path(e->parent, path) < 0){
           path.pop_back();
-          e.capacity = 0;
-          e.reverse_capacity = 1;
+          e->capacity = 0;
+          e->reverse_capacity = 1;
           continue;
         } else {
+          e->capacity = 1;
+          e->reverse_capacity = 0;
           return 1;
         }
       } 
     }
-    return 1;
+    return -1;
   }
   Graph(int n, int k, vector<int> &rec_row_low, vector<int> &rec_row_high, vector<int> &rec_col_low, vector<int> &rec_col_high)
   {
     for (int i = 0; i < n; i ++){
-      Vertice new_row_v(i, 0, -1, -1, -1, -1);
+      Vertice *new_row_v= new Vertice(i, -1, -1, -1, -1, 0);
       row_vertices.push_back(new_row_v);
-      all_vertices.push_back(new_row_v);
-      Vertice new_col_v(i, 0, -1, -1, -1, -1);
+      Vertice *new_col_v = new Vertice(i, -1, -1, -1, -1, 0);
       col_vertices.push_back(new_col_v);
-      all_vertices.push_back(new_col_v);
     }
     for (int i = 0; i < rec_row_low.size(); i ++){
-      Vertice new_rec_v(-1, 1, rec_row_low[i], rec_row_high[i], rec_col_low[i], rec_col_high[i]);
+      Vertice *new_rec_v = new Vertice(-1, rec_row_low[i], rec_row_high[i], rec_col_low[i], rec_col_high[i], 1);
       rec_vertices.push_back(new_rec_v);
-      all_vertices.push_back(new_rec_v);
     }
-    Vertice s(0, 0, 0, 0, 0, 0);
-    Vertice t(0, 0, 0, 0, 0, 0);
-    all_vertices.push_back(s);
-    all_vertices.push_back(t);
+    s = new Vertice(0, 0, 0, 0, 0, 0);
+    t = new Vertice(0, 0, 0, 0, 0, 0);
     for (auto v:row_vertices){
-      
-      s.add_edge(&s, &v);
-      v.add_edge(&s, &v);
+      Edge *e = new Edge(s, v);
+      (*s).add_edge(e);
+      (*v).add_edge(e);
     }
     for(auto v:col_vertices){
-      v.add_edge(&v, &t);
-      t.add_edge(&v, &t);
+      Edge *e = new Edge(v, t);
+      (*v).add_edge(e);
+      (*t).add_edge(e);
     }
     for (auto v : rec_vertices)
     {
 
-      for (int i = v.row_low; i <= v.row_high; i++){
-        row_vertices[i].add_edge(&row_vertices[i], &v);
-        v.add_edge(&row_vertices[i], &v);
+      for (int i = (*v).row_low; i <= (*v).row_high; i++){
+        Edge *e = new Edge(row_vertices[i], v);
+        (*row_vertices[i]).add_edge(e);
+        (*v).add_edge(e);
       }
-      for (int i = v.col_low; i <= v.col_high; i++){
-        col_vertices[i].add_edge(&v,&col_vertices[i]);
-        v.add_edge(&v,&col_vertices[i]);
+      for (int i = (*v).col_low; i <= (*v).col_high; i++){
+        Edge *e = new Edge(v,col_vertices[i]);
+        (*col_vertices[i]).add_edge(e);
+        (*v).add_edge(e);
       }
     }
-    vector<Edge> path;
-    while(get_aug_path(&s, path) > 0){
+    vector<Edge*> path;
+    while(get_aug_path(s, path) > 0){
       path.clear();
     }
-    for (auto v :row_vertices){
-      for (auto e : v.edges){
-        if (e.capacity == 0){
-          result++;
-        }
+    for (auto e :(*s).edges){
+      if (e->capacity == 0 && e->parent == s){
+        result++;
       }
+      
     }
 
   }
@@ -184,5 +191,5 @@ int main(int argc, char *argv[]) {
   Graph g(n, k, rec_row_low, rec_row_high, rec_col_low, rec_col_high);
   cout << g.result;
  
-  return 1;
+  return 0;
 }

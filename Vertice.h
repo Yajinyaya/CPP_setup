@@ -14,9 +14,7 @@ class Vertice{
     int col_high;
     int val;
     Vertice(int i_val, int i_row_low, int i_row_high, int i_col_low, int i_col_high, int i_is_rec);
-    Vertice(){
-      
-    }
+ 
     void add_edge(Edge *e);
 };
 
