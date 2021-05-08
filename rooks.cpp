@@ -35,15 +35,17 @@ Vertice::Vertice(int i_val, int i_row_low, int i_row_high, int i_col_low, int i_
     row_high = i_row_high;
     col_low = i_col_low;
     col_high = i_col_high;
+    val = i_val;
   } else {
     is_rec = 0;
     val = i_val;
   }
+  edges = new vector<Edge *>;
 }
 
 
 void Vertice::add_edge(Edge *e){
-  edges.push_back(e);
+  (*edges).push_back(e);
 }
 
 
@@ -62,39 +64,39 @@ public:
   Vertice *s;
   Vertice *t;
   int result = 0;
-  // void print_graph(){
-  //   cout << "s: " << s << endl;
-  //   for (int i = 0; i < (*s).edges.size(); i++){
-  //     if ((*(*s).edges[i]).parent == s){
-  //       cout << " child of val " << (*(*(*s).edges[i]).child).val << endl;
-  //     }
-      
-  //   }
-  // }
-  int get_aug_path(Vertice *cur, vector<Edge*> &path){
+
+  int get_aug_path(Vertice *cur, vector<Edge*> &path, vector<bool> &discovered){
+    
     if (cur == t){
       return 1;
     }
-    for (Edge *e:cur->edges){
+    if (discovered[cur->val]){
+      return -1;
+    }
+    discovered[cur->val] = true;
+    for (int i = 0; i < (*(cur->edges)).size(); i++){
+      Edge *e = (*(cur->edges))[i];
+      
       if (e->parent == cur && e->capacity > 0){
         e->capacity = 0;
         e->reverse_capacity = 0;
         path.push_back(e);
-        if (get_aug_path(e->child, path) < 0){
+        if (get_aug_path(e->child, path, discovered) < 0)
+        {
           path.pop_back();
           e->capacity = 1;
           e->reverse_capacity = 0;
           continue;
         } else {
-          e->capacity = 0;
-          e->reverse_capacity = 1;
-          return 1;
-        }
+        e->capacity = 0;
+        e->reverse_capacity = 1;
+        return 1;
+        } 
       }else if (e->child == cur &&  e->reverse_capacity  > 0){
         e->capacity = 0;
         e->reverse_capacity = 0;
         path.push_back(e);
-        if (get_aug_path(e->parent, path) < 0){
+        if (get_aug_path(e->parent, path, discovered) < 0){
           path.pop_back();
           e->capacity = 0;
           e->reverse_capacity = 1;
@@ -104,37 +106,44 @@ public:
           e->reverse_capacity = 0;
           return 1;
         }
-      } 
+      }
     }
     return -1;
   }
   Graph(int n, int k, vector<int> &rec_row_low, vector<int> &rec_row_high, vector<int> &rec_col_low, vector<int> &rec_col_high)
   {
+    int index = 0;
     for (int i = 0; i < n; i ++){
-      Vertice *new_row_v= new Vertice(i, -1, -1, -1, -1, 0);
+      Vertice *new_row_v= new Vertice(index, -1, -1, -1, -1, 0);
+      index++;
       row_vertices.push_back(new_row_v);
-      Vertice *new_col_v = new Vertice(i, -1, -1, -1, -1, 0);
+      Vertice *new_col_v = new Vertice(index, -1, -1, -1, -1, 0);
+      index++;
       col_vertices.push_back(new_col_v);
     }
     for (int i = 0; i < rec_row_low.size(); i ++){
-      Vertice *new_rec_v = new Vertice(-1, rec_row_low[i], rec_row_high[i], rec_col_low[i], rec_col_high[i], 1);
+      Vertice *new_rec_v = new Vertice(index, rec_row_low[i], rec_row_high[i], rec_col_low[i], rec_col_high[i], 1);
+      index++;
       rec_vertices.push_back(new_rec_v);
     }
-    s = new Vertice(0, 0, 0, 0, 0, 0);
-    t = new Vertice(0, 0, 0, 0, 0, 0);
-    for (auto v:row_vertices){
+    s = new Vertice(index, 0, 0, 0, 0, 0);
+    index++;
+    t = new Vertice(index, 0, 0, 0, 0, 0);
+    for (int i = 0; i < row_vertices.size(); i ++){
+      Vertice *v = row_vertices[i];
       Edge *e = new Edge(s, v);
       (*s).add_edge(e);
       (*v).add_edge(e);
     }
-    for(auto v:col_vertices){
+     
+    for (int i = 0; i < col_vertices.size(); i ++){
+      Vertice *v = col_vertices[i];
       Edge *e = new Edge(v, t);
       (*v).add_edge(e);
       (*t).add_edge(e);
     }
-    for (auto v : rec_vertices)
-    {
-
+    for (int i = 0; i < rec_vertices.size(); i ++){
+      Vertice *v = rec_vertices[i];
       for (int i = (*v).row_low; i <= (*v).row_high; i++){
         Edge *e = new Edge(row_vertices[i], v);
         (*row_vertices[i]).add_edge(e);
@@ -147,16 +156,18 @@ public:
       }
     }
     vector<Edge*> path;
-    while(get_aug_path(s, path) > 0){
+    vector<bool> discovered(index + 1, false);
+    while(get_aug_path(s, path, discovered) > 0){
+      fill(discovered.begin(), discovered.end(), false);
       path.clear();
     }
-    for (auto e :(*s).edges){
-      if (e->capacity == 0 && e->parent == s){
+    for (int i = 0; i < (*(*s).edges).size(); i ++){
+      Edge *e = (*(*s).edges)[i];
+      if (e->capacity == 0 && e->parent == s)
+      {
         result++;
       }
-      
     }
-
   }
 };
 
